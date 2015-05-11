@@ -1,69 +1,118 @@
-/*
- * Created by Lilly Sun on 10.05.15.
- */
+/************
+ *** SOURCE ***
+ * http://www.lafermeduweb.net/tutorial/l-element-html-5-canvas-p23.html#62
+***********/
+// Constantes du jeu
+var NBR_LIGNES = 5;
+var NBR_BRIQUES_PAR_LIGNE = 8;
+var BRIQUE_WIDTH = 48;
+var BRIQUE_HEIGHT = 15;
+var ESPACE_BRIQUE = 2;
+var BARRE_JEU_WIDTH = 80;
+var BARRE_JEU_HEIGHT = 10;
+var PXL_DEPLA = 4;
+var ZONE_JEU_WIDTH = 400;
+var ZONE_JEU_HEIGHT = 300;
+//var COULEURS_BRIQUES = [#5FE20F, #82E20B, #82E20B, #82E20B,   ]
+
+// Variables
+var tabBriques; // Tableau virtuel contenant les briques
+var barreX; // Position en X de la barre: Changement dynamique avec clavier / souris
+var barreY; // Position en Y de la barre: Ne bougera pas.
+var context;
+
+window.addEventListener('load', function () {
+    // On récupère l'objet canvas
+    var elem = document.getElementById('canvasElem');
+    if (!elem || !elem.getContext) {
+        return;
+    }
+
+    // On récupère le contexte 2D
+    context = elem.getContext('2d');
+    if (!context) {
+        return;
+    }
+
+    // Initialisations des variables
+    ZONE_JEU_WIDTH = elem.width;
+    ZONE_JEU_HEIGHT = elem.height;
+    barreX = (ZONE_JEU_WIDTH/2)-(BARRE_JEU_WIDTH/2);
+    barreY = (ZONE_JEU_HEIGHT-BARRE_JEU_HEIGHT);
+
+    // Le navigateur est compatible, on peut continuer: On initialise le jeu.
+    creerBriques(context, NBR_LIGNES, NBR_BRIQUES_PAR_LIGNE, BRIQUE_WIDTH, BRIQUE_HEIGHT, ESPACE_BRIQUE);
+
+    // Boucle de rafraichissement du contexte 2D
+    idInterv = setInterval(refreshGame, 10);
+
+    // Gestion des évènements
+    window.document.onkeydown = checkDepla;
+
+}, false);
 
 
-/***************
- *** CANVAS ***
- ***************/
+function refreshGame() {
 
-window.addEventListener('load',function ()
-    {
-        //Récupérer l'objet canvas
-        var elem = document.getElementById('canvasElem');
-        if (!elem || !elem.getContext)
-            {
-                return;
-            }
+    // On efface la zone
+    clearContexte(context, 0, ZONE_JEU_WIDTH, 0, ZONE_JEU_HEIGHT);
 
-        // Récupérer le context 2D
-        var context = elem.getContext('2d');
-        if (!context)
-            {
-                return;
-            }
-    // Le navigateur est compatible, le contexte a bien été récupéré, on peut continuer !
-    }, false);
+    // On réaffiche le nécessaire
 
+    // Réaffichage des briques
+    for (var i=0; i < tabBriques.length; i++) {
+       context.fillStyle = "rgb("+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+")";
 
-/***************
- *** JEU ***
- ***************/
-
-// Constantes
-var nbr_Lignes = 5;
-var nbr_BriquesParLigne = 8;
-var briqueWidth = 48;
-var briqueHeigth = 15;
-var briqueSpace = 2;
-
-// variables
-var tabBriques; // tableau virtuel contenant les briques
-
-//Fonction qui crée les briques
-function createBriques (ctx, nbrLignes, nbrParLigne, largeur, hauteur, espace)
-{
-    // Virtuel : Initialisation des lignes de briques
-    tabBriques = new Array (nbrLignes);
-
-    for (var i = 0; i < nbrLignes; i++)
-    {
-        //Virtuel : Initialisation des briques de la ligne
-        tabBriques[i] = new Array (nbrParLigne);
-
-        //Visuel (Affichage) : On attribue une couleur aux briques de la ligne
-        ctx.fillStyle = "rgb("+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+")";
-
-        for (var j=0; j < nbrParLigne; j++)
-        {
-            // Visuel : Afficher une nouvelle brique
-            ctx.fillRect((j*(largeur+espace)),(i*(hauteur+espace)), largeur, hauteur);
-
-            //Virtuel : On attribue à la case actuelle la valeur 1 = la brique existe encore
-            tabBriques [i][j] =1;
+        for (var j=0; j < tabBriques[i].length; j++) {
+            if (tabBriques[i][j] == 1) context.fillRect((j*(BRIQUE_WIDTH+ESPACE_BRIQUE)),(i*(BRIQUE_HEIGHT+ESPACE_BRIQUE)),BRIQUE_WIDTH,BRIQUE_HEIGHT);
         }
     }
 
-    //briques initialisées !
+    // Réaffichage de la barre
+    context.fillStyle = "#333333";
+    context.fillRect(barreX,barreY,BARRE_JEU_WIDTH,BARRE_JEU_HEIGHT);
+
+}
+
+function checkDepla(e) {
+    // Flêche de droite préssée
+    if (e.keyCode == 39) {
+        if ( (barreX+PXL_DEPLA+BARRE_JEU_WIDTH) <= ZONE_JEU_WIDTH ) barreX += PXL_DEPLA;
+    }
+    // Flêche de gauche préssée
+    else if (e.keyCode == 37) {
+        if ( ((barreX-PXL_DEPLA)) >= 0 )  barreX -= PXL_DEPLA;
+    }
+}
+
+function clearContexte(ctx, startwidth, ctxwidth, startheight, ctxheight) {
+    ctx.clearRect(startwidth, startheight, ctxwidth, ctxheight);
+}
+
+// Fonction permettant de créer les briques du jeu
+function creerBriques(ctx, nbrLignes, nbrParLigne, largeur, hauteur, espace) {
+
+    // Tableau virtuel: On initialise les lignes de briques
+    tabBriques = new Array(nbrLignes);
+
+    for (var i=0; i < nbrLignes; i++) {
+
+        // Tableau virtuel: On initialise les briques de la ligne
+        tabBriques[i] = new Array(nbrParLigne);
+
+        // Affichage: On attribue une couleur aux briques de la ligne
+        ctx.fillStyle = "rgb("+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+","+Math.floor(Math.random()*256)+")";
+
+        for (var j=0; j < nbrParLigne; j++) {
+
+            // Affichage: On affiche une nouvelle brique
+            ctx.fillRect((j*(largeur+espace)),(i*(hauteur+espace)),largeur,hauteur);
+
+            // Tableau virtuel: On attribue à la case actuelle la valeur 1 = Une brique existe encore
+            tabBriques[i][j] = 1;
+
+        }
+    }
+    // Nos briques sont initialisées.
     return 1;
 }

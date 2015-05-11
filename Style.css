@@ -21,3 +21,7 @@ h1 {
     font-variant: small-caps;
     color: #FFF;
   }
+p {
+    text-align: center;
+    font-size: 20px;
+}
